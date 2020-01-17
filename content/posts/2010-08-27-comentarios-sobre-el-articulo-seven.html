@@ -1,0 +1,16 @@
+---
+layout: post
+title: Comentarios sobre el artículo "the seven secrets of successful data scientists"
+  de Dataspora.
+date: '2010-08-27T19:01:00.000+01:00'
+author: Marc de Palol
+tags:
+- dataspora
+- big data
+- data science
+modified_time: '2010-08-27T19:01:53.153+01:00'
+blogger_id: tag:blogger.com,1999:blog-6541464271719475452.post-2783951921683545168
+blogger_orig_url: http://distribuint.blogspot.com/2010/08/comentarios-sobre-el-articulo-seven.html
+---
+
+Acabo de leer el siguiente artículo:&nbsp;<a href="http://dataspora.com/blog/the-seven-secrets-of-successful-data-scientists/">"The seven secrets of successful data scientists", de Dataspora</a>&nbsp;(blog muy recomendable por cierto), definitivamente no podría estar más de acuerdo. Resume muy bien algunos de los problemas que he descubierto "a batacazos" durante los dos años en los que he estado trabajando con <i>Big data.&nbsp;</i><br /><i><br /></i><br /><i>V</i>eamos los puntos:<br /><br /><b>Choose The Right-Sized Tool (Usa la herramienta que toque): </b>Muy importante. Hadoop está muy bien, pero sólo tiene sentido si realmente tienes gigabytes de datos. Si tienes pocos datos usa macros de vim, si tienes unos pocos más con las herramientas estándar de Unix y algún lenguaje de scripting bastará.<br /><b></b><b><br /></b><b>Compress Everything (Comprímelo todo): </b>Tengo un post pendiente que habla de esto desde hace mucho tiempo. Cuando se trabaja con datos normalmente la CPU no es el problema. La mayoría de veces es el disco (ya que se usa mucho para sustituir la falta de memoria), la solución es comprimir.<br /><b></b><b><br /></b><b>Split Up Your Data (Parte los datos): </b>Divide y vencerás, pues eso, de hecho se llama "sharding", pero cuidadín al elegir cómo partes los datos.<br /><b></b><b><br /></b><b>Sample Your Data (Samplea, estadísticamente hablando, claro): </b>Un paso importante del desarrollo del software es la parte de testing. Lógicamente muchas veces no se puede disponer de todo el conjunto de datos de entrada, la solución será poder coger <i>un subconjunto estadísticamente representativo </i>de la entrada para probar el programa.<br /><b></b><b><br /></b><b>Smart Borrows, But Genius Uses Open Source (usa código abierto): </b>Nada a decir aquí, antes de redescubrir la rueda pásate por <i>github</i> o <i>google code</i> a dar un vistazo.<br /><b></b><b><br /></b><b>Keep Your Head in the Cloud (Mantén tu cabeza en la nuve, o trabaja en local, dónde quiera que sea "local"):</b> Fallo muy clásico, estamos hablando de muchos datos. Cuando debas manipularlos quieres hacerlo localmente, no quieres mover Terabytes de datos de una máquina a la otra porque la otra tiene un poco más de memoria.<br /><b></b><b><br /></b><b>Don’t Be Clever (No te pases de listo): </b>No se hasta qué punto estoy de acuerdo con este punto, supongo que muy personal, aunque me gusta la última conclusión: mantén el diseño simple.

@@ -1,0 +1,102 @@
+---
+layout: post
+title: Bigtable
+date: '2009-05-08T07:25:00.003+01:00'
+author: Marc de Palol
+tags:
+- bases de dades
+- google
+- bigtable
+modified_time: '2009-05-08T07:35:06.881+01:00'
+blogger_id: tag:blogger.com,1999:blog-6541464271719475452.post-7272248437884220453
+blogger_orig_url: http://distribuint.blogspot.com/2009/05/bigtable.html
+---
+
+Bé, avui toca parlar del primer article de la sèrie de noves bases de dades. BigTable, de Google.
+<br />
+<br />El que trobareu aquí és un resum de l'article <i><a href="http://labs.google.com/papers/bigtable.html">Bigtable: A distributed storage system for structured data</a></i> que va aparèixer a la conferència OSDI al 2006.
+<br />
+<br />Primerament, BigTable és el nom del producte que van programar internament a google, és bàsicament un sistema d'emmagatzemament distribuït per guardar dades estructurades i està pensat perquè sigui molt escalable. A més, un detall important, és que els enginyers de google el van dissenyar per còrrer en moltes màquines genèriques, no calen grans servidors ni discs durs especials, simplement, màquines com les que podem tenir ara mateix al davant. Google utilitza aquest servei per guardar moltes de les seves dades, per exemple índexs web, o imatges de Google Earth, per tant, no és una idea, és una implementació existent <b> i està en producció</b><
+<br />
+<br />Com ja havia introduït en el post anterior, Bigtable no utilitza ni dona suport a un model de dades relacional, al contrari, facilita un model de dades molt senzill que permet <i>un control dinàmic sobre l'estructura dels continguts i del seu format</i>. Les dades són indexades mitjançant columnes i files, els noms de les quals són cadenes de texte, els continguts d'aquestes són cadenes de texte també, per tant, la base de dades no sap (ni li interessa) el format dels continguts, això és problema de l'aplicació.
+<br />
+<br /><h3>Model de Dades</h3>
+<br />Atenció amb la definició: <i>Bigtable és un mapa ordenat, multidimensional, distribuït, persistent i dispers</i> (aplaudiments i furor general!). Aquest mapa està indexat per:
+<br /><ul>
+<br />	<li>Clau de la fila
+<br />	<li>Clau de la columna
+<br />	<li>Instant de temps (!)
+<br /></ul>
+<br />Per tant té aquest format:
+<br /><pre>
+<br />(row:string, column:string, time:int64) --> string
+<br /></pre>
+<br />Anem a explicar una mica cada factor d'indexació:
+<br /><h4>Fila</h4>
+<br />Les clau de cada fila són strings, de fins a 64Kb, cada lectura i escriptura a una fila es considera atòmica. Un detall important és que per a cada taula es particiona dinàmicament el número de files que té una <i>tablet</i>, que és la unitat de distribució i balancejament de dades de Bigtable (més explicació sobre això una mica més endavant). 
+<br />
+<br /><h4>Familia de Columnes</h4>
+<br />Les claus de les columnes estan agrupades en <i>families de columnes</i>, que són els elements més bàsics d'accés a control a la taula. Aquestes no haurien de canviar de forma dinàmica, per tant, una taula té un número fixe de families de columnes durant l'execució, ara bé, dins de cada familia de columnes hi pot haver un número indeterminat de columnes, que poden aparèixer i desaparèixer en temps d'execució. Per tant, una familia de columnes de Bigtable equival a una columna d'una base de dades de model relacional, i a més aquesta columna podria tenir columnes a dins, i a més dinàmiques!
+<br />
+<br /><h4>Instant de temps</h4>
+<br />La idea és ben senzilla, es tracta que una taula tingui un històric dels valors que hi havia en les columnes/files. Lògicament això és un valor configurable i a més, Bigtable té un garbage collector, semblant al Java que va netejant valors a mesura que es fan més vells del que ens interessa. 
+<br />
+<br /><h3>API</h3>
+<br />Una altre gran diferència entre les bases de dades relacionals i Bigtable és que mentres que les RDB interactuen amb l'exterior mitjançant SQL, Bigtable ho fa mitjançant una API, per tant, en aquest punt s'aproxima més al Hashmap distribuït. Apart d'això, els usuaris poden crear scripts amb un llenguatge de query de google anomenat <a href="http://labs.google.com/papers/sawzall.html">Sawzall</a> per fer consultes més complexes.
+<br />
+<br /><h3>Parts de l'arquitectura de Bigtable</h3>
+<br />Hem de tenir en compte que els enginyers de google no van crear Bigtable del res, es van basar i lògicament van utilitzar coses que ja estaven fetes dins de Google:
+<br /><ul>
+<br />	<li> <a href="http://labs.google.com/papers/gfs.html">Google File System</a>, un sistema de fitxers distribuït.
+<br />	<li> Google SSTable, un format de fitxers binari. Bàsicament és una taula de hash de clau->valor ordenats.
+<br />	<li> <a href="http://labs.google.com/papers/chubby.html">Chubby</a>, un servei de locks distribuit i persistent. Bàsicament es tracta d'un servei que és capaç de mantenir semàfors i altres tipus de locks de concurrència de forma distribuïda.
+<br /></ul>
+<br />Casi res :D, mare meva que animals que són aquests de can google...
+<br />
+<br /><h3>Implementació de Bigtable</h3>
+<br />Ja aviso que a partir d'aquí la cosa es complica una mica, si no us interessa la implementació d'aquest petit monstre us recomano que passeu directament a <a href="#llicons">Coses que han aprés a can Google</a>. De totes maneres, l'article no és molt detallat en quant a l'implementació, ja que és una implementació propietària i tancada i jo bàsicament n'he fet un resum per destacar-ne els detalls més importants.
+<br />
+<br />Per la resta de valents... Bigtable està format per 3 components:
+<br /><ol>
+<br />	<li> Un llibreria que usa l'aplicació client.
+<br />	<li> Un servidor <i>master</i>
+<br />	<li> Molts servidors de <i>tablets</i>, que poden ser afegits o trets de forma dinàmica del cluster per suplir necessitats de càrrega.
+<br /></ol>
+<br />
+<br />El master és l'encarregat d'assignar les tablets als servidors de tablets, detectar canvis en les màquines (afegim o treiem servidors de tablets), fer el balanceig de càrrega, neteja de files (temes temporals) i finalment manegar els canvis d'esquema de la base de dades, com són la creació de taules i de families de columnes.
+<br />
+<br />Cal tenir en compte que tot i tenir un servidor master, les dades dels clients no hi passen a través, per sino que es comuniquen directament amb els servidors de tablets per fer les escriptures/lectures, i important, no utilitzen el servidor master per localitzar les tablets!, per tant, a efectes pràctics el màster està bastant descarregat.
+<br />
+<br /><h4>Localització de les <i>tablets</i></h4>
+<br />Tema important, com s'ho fa un client per localitzar el tablet que té les files que l'interessen?, però abans d'això és important saber que aquesta informació està guardada en una estructura de dades de 3 nivells, semblant a un <a href="http://en.wikipedia.org/wiki/B%2B_tree">arbre B+</a>, i el primer nivell de l'estructura està en un fitxer guardat a Chubby, per tant, el client el primer que fa és preguntar a Chubby a on és aquest fitxer,i amb un màxim de 3 salts tenim el tablet que té l'informació que necessitem.
+<br />
+<br /><h4>Assignació de les <i>tablets</i></h4>
+<br />Següent pregunta: a on són els tablets? i per què hi són?
+<br />Lògicament cada tablet està assignat només a un servidor de en cada moment, el servidor màster manté una llista dels servidors de tablets que estan actius a cada moment, els tablets que ténen assignats cadascun i també els tablets que no estan assignats a cap servidor (i que per tant estan guardats al GFS). Aquesta llista només canvia quan:
+<br /><ul>
+<br />	<li>Una taula és creada.
+<br />	<li>Una taula és destruïda
+<br />	<li>Dos tablets s'han fet tant petits que el màster decideix ajuntar-los en un sol tablet.
+<br />	<li>Un tablet s'ha fet tant gran que el màster decideix partir-lo en dos.
+<br /></ul>
+<br />
+<br /> 
+<br /><h4>Altres detalls interessants</i></h4>
+<br />El paper dóna bastants més detalls d'implementació, però realment això pretén ser una introducció al model de dades de Bigtable, per tant els he ignorat, ara bé vull destacar:
+<br /><ul>
+<br />	<li><b>Grups de localitat:</b> Els clients poden agrupar diversos grups de families en el que són els grups de localitat, cosa que permet garantir que estaran al mateix servidor de tablets.
+<br />	<li><b>Compressió:</b> Lògicament es permet compressió a l'hora de guardar els valors. S'han triat un conjunt d'algorismes de compressió ràpids (comprimeixen a 100-200Mb/s i descomprimeixen a 400-1000Mb/s en una bona màquina) i també poden descomprimir el fitxer per parts, sense haver de descomprimir-lo tot, molt pràctic en cas de que volguem llegir només una part petita del fitxer.
+<br />	<li><b>Bloom Filters:</b> No saps què són els bloom filters? (<a href="http://en.wikipedia.org/wiki/Bloom_filter">wikipedia</a>) Per evitar fer molts d'accessos a disc Bigtable utilitza Bloom Filters per veure si un fitxer en format SSTable conté les dades per un clau/valor en concret.
+<br />	<li><b>Caching:</b> les lectures estan en una cache per una lectura més ràpida. 
+<br /></ul>
+<br />
+<br /><h3><a name="llicons">Coses que han aprés a can Google</a></h3>
+<br />L'article original té tot un apartat de les lliçons apreses en l'implementació, evaluació i ús de Bigtable internament a google, voldria destacar les dues següents:
+<br /><ul>
+<br />	<li>La majoria d'aplicacions només necessiten transaccions d'una sola columna.
+<br />	<li>És important mantenir un, atenció aquí: <b>DISSENY SENZILL</b>, perquè més endavant sigui senzill de modificar, segons les necessitats reals, que normalment són diferents a les inicials.
+<br /></ul>
+<br />
+<br />I això és bàsicament un resum del que és <i>Bigtable</i>. És recomanable llegir el paper original, ja que dóna molts més detalls sobre implementació i decisions de disseny. Cal tenir en compte que és un paper bastant important i que ha sigut molt influent en les noves bases de dades que s'estan utilitzant i implementant actualment. Sobretot perquè va ser de les primers en trencar amb el model de dades relacional i es va posar en producció (i va funcionar)
+<br />
+<br />

@@ -1,0 +1,21 @@
+baseURL = "http://bla.com"
+languageCode = "en-us"
+title = "Marc de Palol's notes"
+theme = "yinyang"
+
+
+[params]
+headTitle = "Marc de Palol's notes"
+
+
+[[params.socials]]
+name = "Github"
+link = "https://github.com/lant"
+
+[[params.socials]]
+name = "Twitter"
+link = "https://twitter.com/lant"
+
+[[params.socials]]
+name = "About"
+link = "http://localhost:1313/about/"
