@@ -6,17 +6,7 @@ theme = "yinyang"
 
 [params]
 headTitle = "Marc de Palol's notes"
-extraHead = '
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-16677708-2"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-      gtag("js", new Date());
-
-        gtag("config", "UA-16677708-2");
-        </script>
-'
-
+extraHead = '<script async src="https://www.googletagmanager.com/gtag/js?id=UA-16677708-2"></script>'
 
 [[params.socials]]
 name = "Github"
