@@ -1,6 +1,6 @@
 ---
 title: "Parallel and xargs"
-date: 2020-04-23T21:21:29+01:00
+date: 2020-04-22T21:21:29+01:00
 draft: false
 ---
 Nowadays we have amazing computers. I'm currently writing this blog post in a Dell XPS 15, this computer has 12 cores. It makes sense to use them right? 
